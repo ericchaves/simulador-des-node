@@ -6,6 +6,15 @@
       "name": "Run npm start",
       "request": "launch",
       "type": "node-terminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Typescript",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "program": "${workspaceFolder}/modelos/exemplo.ts",
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "sourceMaps": true
     }
   ]
 }

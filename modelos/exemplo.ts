@@ -1,6 +1,6 @@
-const { Simulador } = require("../.dist/index");
-const Pessoas = require("../.dist/entidades/Pessoas");
-const Sala = require("../.dist/entidades/Sala");
+import { Simulador } from "../src/index";
+import Pessoas from "../src/entidades/Pessoas";
+import Sala from "../src/entidades/Sala";
 
 const sala = new Sala("Sala1", 2);
 const pessoas = new Pessoas("Pessoas");
