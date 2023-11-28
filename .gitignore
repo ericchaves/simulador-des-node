@@ -1,0 +1,6 @@
+node_modules
+.build
+_old.txt
+notes.md
+prompt.md
+.dist
