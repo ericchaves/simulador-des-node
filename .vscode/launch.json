@@ -2,19 +2,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "command": "npm start",
-      "name": "Run npm start",
-      "request": "launch",
-      "type": "node-terminal"
-    },
-    {
       "type": "node",
       "request": "launch",
-      "name": "Launch Typescript",
-      "runtimeArgs": ["-r", "ts-node/register"],
+      "name": "Launch Program",
+      "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/modelos/exemplo.ts",
       "outFiles": ["${workspaceFolder}/dist/**/*.js"],
-      "sourceMaps": true
+      "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+      "cwd": "${workspaceFolder}",
+      "sourceMaps": true,
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

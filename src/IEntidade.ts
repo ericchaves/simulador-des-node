@@ -1,3 +1,5 @@
+export type AgendarEventoFunction = (nome: string, entidade: string, argumentos: Record<string, any>[], espera: number) => void;
+
 /**
  * Interface para representar uma entidade na simulação.
  * @interface
@@ -16,7 +18,7 @@ export interface IEntidade {
    * @param {Function} agendar Callback para agendar eventos.
    * @returns {Promise<boolean>} Retorna true se a inicialização foi bem-sucedida, false caso contrário.
    */
-  inicializar(agendar: Function): Promise<boolean>;
+  inicializar(agendarEvento: AgendarEventoFunction): Promise<boolean>;
 
   /**
    * Método para processar um evento.
@@ -27,5 +29,7 @@ export interface IEntidade {
    * @param {number} momentoAtual Valor do momento atual.
    * @returns {Promise<boolean>} Retorna true se o evento foi processado com sucesso, false caso contrário.
    */
-  processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number): Promise<boolean>;
+  processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }
+
+// transforme a interface IEntidade em uma classe abstrata Entidade

@@ -2,9 +2,12 @@
   "name": "simulador-des",
   "version": "1.0.0",
   "description": "Simulador DES",
-  "main": "modelos/exemplo.js",
+  "main": "./dist/modelos/exemplo.js",
   "scripts": {
-    "start": "tsc && node ./modelos/exemplo.js",
+    "clean": "rm -rf ./dist",
+    "build": "tsc",
+    "dev": "ts-node-dev --respawn ./modelos/exemplo.ts",
+    "start": "node ./dist/src/modelos/exemplo.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,6 +16,7 @@
   "devDependencies": {
     "@types/node": "^20.10.0",
     "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.2"
   }
 }

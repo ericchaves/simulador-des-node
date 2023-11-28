@@ -10,35 +10,42 @@ Em um simulador DES, o fluxo do tempo é representado por uma série de eventos 
 
 Este tipo de simulação é particularmente útil para sistemas complexos em áreas como logística, redes de computadores, processos industriais, e mais.
 
-## Arquitetura do projeto
+## Como funciona este Simulador?
 
 O projeto é dividido nas seguintes classes e interfaces principais:
 
-- `Simulador`: Esta é uma classe que controla a execução da simulação. Ao criar uma instância de Simulador é preciso informar a lista de entidades que serão usadas durante a simulação. Internamente o simulador possui uma `LinhaDoTempo` onde eventos são agendados para serem recebidos e processados pelas entidades na medida em que a simulação percorre a linha do tempo. O tempo de um simulação não é contado em segundos em sim em "momentos" de uma unidade iniciando pelo momento '0' (zero). 
+- `Entidades`: Entidades, que implementam a interface `IEntidade`, são classes que controlam o estado e a lógica do sistema simulado. Elas são atualizadas por eventos próprios e interagem entre si por meio destes eventos. O método `inicializar` é usado para que a entidade adicione os primeiros eventos à linha do tempo da simulação antes da simulação começar e o método `processarEvento` é chamado durante a execução da simulação para que a entidade reaja aos eventos que recebeu, atualizando seu estado interno e agendando novos eventos à linha do tempo.
 
-- `Entidades`: Entidades são classes que geram eventos e processam eventos durante a simulaçao. Para isso devem implementar a interface `IEntidade`. Esta interface define o nome usado para identificar cada entidade e declara dois métodos que serão chamados usados pelo `Simulador`. São eles `inicializar` e `processarEvento`. O método `inicializar` é usado para que a entidade adicione os primeiros eventos à linha do tempo da simulação e o método `processarEvento` por sua vez é chamado durante a execução da simulação a cada vez que um evento agendado é disparado, permitindo que entidade reaja aos eventos que ocorrem durante a simulação, podendo inclusive adicionar novos eventos à linha do tempo.
+- `Eventos`: Eventos são mensagens com nome, entidade responsável, um valor de espera (tempo até disparo) e argumentos com detalhes adicionais, usados pelas entidades para atualizar seu estado.
 
-- `Evento`: É um tipo de dado que representa um evento discreto (pontual) na simulação. Eventos não possuem comportamento. Cada evento possui um `nome` para identificar seu "tipo", uma `entidade` responsável pelo seu processamento e um valor de `espera` que representa unidades de tempo até que o evento seja disparado, contadas a partir do momento do agendamento (o valor de `espera` é sempre um valor relativo e nunca absoluto). Além disso cada evento possui um campo `argumentos` usado passar parâmetros adicionais usados pela entidade para identificar e processar o evento.
+Eventos são mensagens enviadas para as entidades, permitindo que elas atualizem seu estado interno. Um evento possui um `nome`, uma `entidade` responsável pelo seu processamento e um valor de `espera` que representa unidades de tempo até que o evento seja disparado, contadas a partir do momento do agendamento (o valor de `espera` é sempre um valor relativo e nunca absoluto). Além disso cada evento possui um campo `argumentos` usado passar parâmetros adicionais usados pela entidade para identificar e processar o evento.
 
-## Como usar
+- `Simulador`: O Simulador gerencia a simulação através de uma LinhaDoTempo, agendando e processando eventos e requer uma lista de entidades. O simulador é responsável por iniciar a simulação, processar os eventos e atualizar as entidades, e também por gerar o fluxo de tempo da simulação, que é uma série de momentos em que os eventos são processados.
 
-Para criar suas próprias simulações primeiro é precis definir suas entidades. Você deve criar uma nova classe que implementa a interface `IEntidade`. Aqui está um exemplo:
+## Criando uma nova simulação
+
+Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `modelos`.
 
 ```typescript
 class MinhaEntidade implements IEntidade {
-  nome: string;
-  async inicializar(agendar: (evento: Evento) => void): Promise<boolean> {
-    // Implemente a lógica para adicionar eventos à linha do tempo aqui.
+  // implemente os métodos da interface
+  async inicializar(agendarEvento: AgendarEventoFunction): Promise<boolean> {
+    // adicione eventos à linha do tempo
+    agendarEvento('nome-do-evento', 'entidade-destino', [{argumento1: 'valor'},{argumento2: 30}], 10);
     return true;
   }
-  processarEvento(nome: string, argumentos: Record<string, any>[], momento: number): boolean {
-    // Implemente a lógica para processar o evento aqui.
+
+  async processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  {
+    if(evento === 'nome-do-evento') {
+      // faça algo
+    }
     return true;
   }
 }
 ```
 
-Para executar uma simulação, você deve criar uma nova instância do `Simulador`, adicionar suas entidades e eventos à linha do tempo e, em seguida, chamar o método `simular`. Aqui está um exemplo:
+Para executar uma simulação, você deve criar uma nova instância do `Simulador`, adicionar suas entidades e eventos à linha do tempo e, em seguida, chamar o método `simular`.
 
 ```typescript
 const entidade = new MinhaEntidade();

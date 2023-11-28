@@ -1,12 +1,11 @@
-import { Evento } from './Evento';
-import { LinhaDoTempo } from './LinhaDoTempo';
-import { Simulador, Momentos } from './Simulador';
-import { IEntidade } from './IEntidade';
+import { LinhaDoTempo, Evento } from './LinhaDoTempo';
+import Simulador from './Simulador';
+import { IEntidade, AgendarEventoFunction } from './IEntidade';
 
 export {
-  Evento,
   LinhaDoTempo,
   Simulador,
-  Momentos,
-  IEntidade
+  IEntidade,
+  AgendarEventoFunction,
+  Evento,
 };

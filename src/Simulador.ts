@@ -1,41 +1,42 @@
 import { IEntidade } from './IEntidade';
-import { Evento } from './Evento';
-import { LinhaDoTempo } from './LinhaDoTempo';
-
-/**
- * Tipo para representar um momento na simulação.
- * @typedef
- */
-export type Momentos = {
-  momento: number;
-  eventosProcessados: number;
-  eventosNaoProcessados: number;
-};
+import { LinhaDoTempo, Evento } from './LinhaDoTempo';
 
 /**
  * Classe para coordenar a simulação.
  * @class
  */
-export class Simulador {
+export default class Simulador {
   private linhaDoTempo: LinhaDoTempo;
-  private entidades: IEntidade[];
+  private entidades: Map<string, IEntidade[]> = new Map();
   private momentoInicial: number;
   private momentoFinal: number;
 
   constructor(entidades: IEntidade[], momentoInicial: number, momentoFinal: number) {
     this.linhaDoTempo = new LinhaDoTempo();
-    this.entidades = entidades;
+    entidades.map(entidade => this.entidades.set(entidade.nome, [entidade]));
     this.momentoInicial = momentoInicial;
     this.momentoFinal = momentoFinal;
+  }
+
+  private async dispararEvento(evento: Evento): Promise<boolean> {
+    const entidade = this.entidades.get(evento.entidade);
+    if(entidade){
+      return await entidade[0].processarEvento(evento.nome, evento.argumentos, this.linhaDoTempo.momentoAtual, this.agendarEvento.bind(this));
+    }
+    return false;
   }
 
   /**
    * Método para agendar um evento na linha do tempo.
    * @method
-   * @param {Evento} evento Evento a ser agendado.
+   * @param {string} nome Evento a ser agendado.
    */
-  agendar(evento: Evento) {
-    this.linhaDoTempo.agendar(evento);
+  agendarEvento(nome: string, entidade: string, argumentos: Record<string, any>[], espera: number = 1) {
+    if(espera <= 0){
+      this.dispararEvento({nome, entidade, argumentos, espera:0});
+    }else{
+      this.linhaDoTempo.agendar({nome, entidade, argumentos, espera});
+    }
   }
 
   /**
@@ -43,9 +44,9 @@ export class Simulador {
    * @method
    * @returns {Promise<boolean>} Retorna true se a inicialização foi bem-sucedida, false caso contrário.
    */
-  async iniciar(): Promise<boolean> {
-    for (let entidade of this.entidades) {
-      const sucesso = await entidade.inicializar(this.agendar.bind(this));
+  async preparar(): Promise<boolean> {
+    for (let [nome, entidade] of this.entidades) {
+      const sucesso = await entidade[0].inicializar(this.agendarEvento.bind(this));
       if (!sucesso) {
         return false;
       }
@@ -56,28 +57,23 @@ export class Simulador {
   /**
    * Método para simular a linha do tempo.
    * @method
-   * @returns {AsyncGenerator<Momentos>} Retorna um gerador de momentos.
+   * @returns {AsyncGenerator<Marco>} Retorna um gerador de momentos.
    */
-  async *simular(): AsyncGenerator<Momentos> {
-    while (this.linhaDoTempo.momentoAtual <= this.momentoFinal) {
-      const eventos = this.linhaDoTempo.retirarProximosEventos();
-      if (eventos && this.linhaDoTempo.momentoAtual >= this.momentoInicial) {
-        let eventosProcessados = 0;
-        let eventosNaoProcessados = 0;
-        for (let evento of eventos) {
-          for (let entidade of this.entidades) {
-            const sucesso = await entidade.processarEvento(evento.nome, evento.argumentos, this.linhaDoTempo.momentoAtual);
-            if (sucesso) {
-              eventosProcessados++;
-            } else {
-              eventosNaoProcessados++;
-            }
-          }
-        }
-        yield { momento: this.linhaDoTempo.momentoAtual, eventosProcessados, eventosNaoProcessados };
+  async *simular(): AsyncGenerator<Number> {
+    while (this.linhaDoTempo.momentoAtual < this.momentoFinal) {
+      for(const evento of this.linhaDoTempo.avancarTempo()){
+        this.dispararEvento(evento); 
       }
+      yield this.linhaDoTempo.momentoAtual;
     }
     return null;
   }
 
+  /**
+   * Método para abortar a simulação em execução.
+   * @method
+   */
+  pararSimulacao() {
+    this.linhaDoTempo.abortar = true;
+  }
 }
