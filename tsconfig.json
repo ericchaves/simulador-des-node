@@ -2,7 +2,8 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "rootDirs": ["src" , "modelos"],
+    "declaration": true,
+    "rootDirs": ["src","exemplos"],
     "lib": ["ESNext"],
     "noEmit": false,
     "outDir": "dist",
@@ -15,6 +16,6 @@
     "skipLibCheck": true
   },
   "types": ["node", "jest", "ts-node"],
-  "include": ["src/**/*.ts", "modelos/**/*.ts"],
-  "exclude": ["node_modules", "**/*.spec.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.test.ts","exemplos/**/*.ts"]
 }

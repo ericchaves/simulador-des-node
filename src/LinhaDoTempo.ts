@@ -38,7 +38,6 @@ export type Evento = {
 export class LinhaDoTempo {
   private eventos: Map<number, Evento[]> = new Map();
   public momentoAtual: number = 0;
-  public abortar: boolean = false;
 
   /**
    * Método para agendar um evento na linha do tempo.
@@ -58,17 +57,13 @@ export class LinhaDoTempo {
    * @returns {Generator<Evento>} Retorna um gerador de eventos. Se não houver mais eventos, retorna um gerador vazio.
    */
   *avancarTempo(): Generator<Evento> {
-    this.abortar = false;
+    this.momentoAtual++;
     while(this.eventos.has(this.momentoAtual)){
       const eventos = this.eventos.get(this.momentoAtual) || [];
       this.eventos.delete(this.momentoAtual);
       while(eventos.length > 0){
         yield eventos.shift() as Evento;
       }
-      if(this.abortar){
-        return;
-      }
     }
-    this.momentoAtual++;
   }
 }

@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.json", 
+  "compilerOptions": {
+    "noEmit": true  // Evita a geração de arquivos .js e .d.ts
+  },
+  "include": ["*.ts","entidades/*.ts"],
+  "exclude": ["../node_modules", "../**/*.test.ts"]
+}

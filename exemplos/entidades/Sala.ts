@@ -1,4 +1,4 @@
-import { IEntidade, AgendarEventoFunction } from '../../src/';
+import { IEntidade, AgendarEventoFunction } from '../../src';
 
 export default class Sala implements IEntidade {
   nome: string;

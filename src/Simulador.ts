@@ -10,6 +10,7 @@ export default class Simulador {
   private entidades: Map<string, IEntidade[]> = new Map();
   private momentoInicial: number;
   private momentoFinal: number;
+  private abortar: boolean = false;
 
   constructor(entidades: IEntidade[], momentoInicial: number, momentoFinal: number) {
     this.linhaDoTempo = new LinhaDoTempo();
@@ -61,6 +62,10 @@ export default class Simulador {
    */
   async *simular(): AsyncGenerator<Number> {
     while (this.linhaDoTempo.momentoAtual < this.momentoFinal) {
+      if(this.abortar){
+        this.abortar = false;
+        return;
+      }
       for(const evento of this.linhaDoTempo.avancarTempo()){
         this.dispararEvento(evento); 
       }
@@ -74,6 +79,6 @@ export default class Simulador {
    * @method
    */
   pararSimulacao() {
-    this.linhaDoTempo.abortar = true;
+    this.abortar = true;
   }
 }

@@ -24,7 +24,7 @@ Eventos são mensagens enviadas para as entidades, permitindo que elas atualizem
 
 ## Criando uma nova simulação
 
-Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `modelos`.
+Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `exemplos`.
 
 ```typescript
 class MinhaEntidade implements IEntidade {

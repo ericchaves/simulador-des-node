@@ -32,4 +32,14 @@ export interface IEntidade {
   processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }
 
-// transforme a interface IEntidade em uma classe abstrata Entidade
+export abstract class Entidade {
+  nome: string;
+
+  constructor(nome: string) {
+    this.nome = nome;
+  }
+  
+  abstract inicializar(agendarEvento: AgendarEventoFunction): Promise<boolean>;
+
+  abstract processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+}
