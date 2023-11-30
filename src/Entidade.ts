@@ -1,4 +1,4 @@
-export type AgendarEventoFunction = (nome: string, entidade: string, argumentos: Record<string, any>[], espera: number) => void;
+export type AgendarEventoFunction = (emissor: IEntidade, nome: string, entidade: string, argumentos: Record<string, any>[], espera: number) => void;
 
 /**
  * Interface para representar uma entidade na simulação.
@@ -25,11 +25,12 @@ export interface IEntidade {
    * Recebe o nome do evento, os argumentos do evento e o valor do momentoAtual.
    * @method
    * @param {string} evento Nome do evento.
+   * @param {IEntidade} emissor Entidade que agendou o evento.
    * @param {Record<string, any>[]} argumentos Argumentos do evento.
    * @param {number} momentoAtual Valor do momento atual.
    * @returns {Promise<boolean>} Retorna true se o evento foi processado com sucesso, false caso contrário.
    */
-  processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }
 
 export abstract class Entidade {
@@ -41,5 +42,5 @@ export abstract class Entidade {
   
   abstract inicializar(agendarEvento: AgendarEventoFunction): Promise<boolean>;
 
-  abstract processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  abstract processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }

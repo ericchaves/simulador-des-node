@@ -1,4 +1,4 @@
-import { IEntidade } from './IEntidade';
+import { IEntidade } from './Entidade';
 import { LinhaDoTempo, Evento } from './LinhaDoTempo';
 
 /**
@@ -22,7 +22,13 @@ export default class Simulador {
   private async dispararEvento(evento: Evento): Promise<boolean> {
     const entidade = this.entidades.get(evento.entidade);
     if(entidade){
-      return await entidade[0].processarEvento(evento.nome, evento.argumentos, this.linhaDoTempo.momentoAtual, this.agendarEvento.bind(this));
+      return await entidade[0].processarEvento(
+        evento.emissor, 
+        evento.nome, 
+        evento.argumentos, 
+        this.linhaDoTempo.momentoAtual, 
+        this.agendarEvento.bind(this)
+      );
     }
     return false;
   }
@@ -32,11 +38,11 @@ export default class Simulador {
    * @method
    * @param {string} nome Evento a ser agendado.
    */
-  agendarEvento(nome: string, entidade: string, argumentos: Record<string, any>[], espera: number = 1) {
+  agendarEvento(emissor:IEntidade, nome: string,  entidade: string, argumentos: Record<string, any>[], espera: number = 1) {
     if(espera <= 0){
-      this.dispararEvento({nome, entidade, argumentos, espera:0});
+      this.dispararEvento({emissor, nome, entidade, argumentos, espera:0});
     }else{
-      this.linhaDoTempo.agendar({nome, entidade, argumentos, espera});
+      this.linhaDoTempo.agendar({emissor, nome, entidade, argumentos, espera});
     }
   }
 

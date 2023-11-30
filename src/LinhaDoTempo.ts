@@ -1,8 +1,16 @@
+import { IEntidade } from "./Entidade";
+
 /**
  * Tipo para representar um evento na simulação.
  * @typedef
  */
 export type Evento = {
+  /**
+   * Entidade que agendou o evento.
+   * @type {string}
+   */
+    emissor: IEntidade;
+
   /**
    * Nome do evento.
    * @type {string}

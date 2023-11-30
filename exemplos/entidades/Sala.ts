@@ -15,17 +15,17 @@ export default class Sala implements IEntidade {
     return true;
   }
 
-  async processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean> {
+  async processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean> {
     const pessoa = argumentos[0].pessoa;
     try{
       switch (evento) {
       case 'entrar':
         if (this.pessoasNaSala < this.capacidadeMaxima) {
           this.pessoasNaSala++;
-          agendarEvento('entrar', 'pessoas', [{ pessoa }], 0);
-          agendarEvento('sair', 'pessoas', [{ pessoa }], 2);
+          agendarEvento(this, 'entrar', 'pessoas', [{ pessoa }], 0);
+          agendarEvento(this, 'sair', 'pessoas', [{ pessoa }], 2);
         } else {
-          agendarEvento('aguardar', 'pessoas', [{ pessoa }], 0);
+          agendarEvento(this, 'aguardar', 'pessoas', [{ pessoa }], 0);
         }
         return true;
       case 'sair':

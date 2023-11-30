@@ -13,12 +13,12 @@ export default class Pessoas implements IEntidade {
     console.log('Inicializando pessoas - agendando 5 eventos');
     for (let i = 1; i <= 5; i++) {
       let argumentos: Record<string, any>[] = [{pessoa :`pessoa_${i}`}];
-      agendarEvento('entrar', 'sala', argumentos, 1);
+      agendarEvento(this, 'entrar', 'sala', argumentos, 1);
     }
     return true;
   }
 
-  async processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean> {
+  async processarEvento(emissor:IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean> {
     const pessoa = argumentos[0].pessoa;
     console.log(`Pessoas: evento ${evento} recebido no momento ${momentoAtual} para ${pessoa}`);
     try{
@@ -33,7 +33,7 @@ export default class Pessoas implements IEntidade {
           if(this.aguardando.size > 0){
             const [proximaPessoa] = this.aguardando;
             this.aguardando.delete(proximaPessoa);
-            agendarEvento('entrar', 'sala', [{ pessoa: proximaPessoa }], 2);
+            agendarEvento(this, 'entrar', 'sala', [{ pessoa: proximaPessoa }], 2);
           }
           return true;
         case 'aguardar':
