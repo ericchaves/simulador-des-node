@@ -28,12 +28,13 @@ export interface IEntidade {
    * @param {IEntidade} emissor Entidade que agendou o evento.
    * @param {Record<string, any>[]} argumentos Argumentos do evento.
    * @param {number} momentoAtual Valor do momento atual.
+   * @param {Date} timestampAtual Timestamp do momento atual em relação a dataInicial e escala da simulação.
    * @returns {Promise<boolean>} Retorna true se o evento foi processado com sucesso, false caso contrário.
    */
-  processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, timestampAtual: Date, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }
 
-export abstract class Entidade {
+export abstract class Entidade implements IEntidade {
   nome: string;
 
   constructor(nome: string) {
@@ -42,5 +43,5 @@ export abstract class Entidade {
   
   abstract inicializar(agendarEvento: AgendarEventoFunction): Promise<boolean>;
 
-  abstract processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  abstract processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, timestampAtual: Date, agendarEvento: AgendarEventoFunction): Promise<boolean>;
 }

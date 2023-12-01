@@ -24,7 +24,7 @@ Eventos são mensagens enviadas para as entidades, permitindo que elas atualizem
 
 ## Criando uma nova simulação
 
-Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `exemplos`.
+Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `exemplos`. 
 
 ```typescript
 class MinhaEntidade implements IEntidade {
@@ -35,7 +35,7 @@ class MinhaEntidade implements IEntidade {
     return true;
   }
 
-  async processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean>;
+  async processarEvento(evento: string, argumentos: Record<string, any>[], momentoAtual: number, timestampAtual: Date, agendarEvento: AgendarEventoFunction): Promise<boolean>;
   {
     if(evento === 'nome-do-evento') {
       // faça algo
@@ -45,14 +45,25 @@ class MinhaEntidade implements IEntidade {
 }
 ```
 
-Para executar uma simulação, você deve criar uma nova instância do `Simulador`, adicionar suas entidades e eventos à linha do tempo e, em seguida, chamar o método `simular`.
+Para executar uma simulação, você deve criar uma nova instância do `Simulador`, adicionar suas entidades e eventos à linha do tempo e, em seguida, chamar o método `simular`. 
+
+Ao executar uma simulação deve-se informar uma data de inicio e uma data fim para encerrar a simulação e uma escala de tempo em segundos. O simulador irá calcular o número de momentos necessários para simular o intervalo de tempo considerando escala de tempo informada. Por exemplo:
+- Se a escala for 60 cada momento irá durar 60 segundos.
+
+Ao disparar um evento durante a simulação a entidade recberá no evento a quantidade de momentos transcorridos (momentoAtual) e também um timestamp com a data transcorrida de acordo com a escala.
+
 
 ```typescript
 const entidade = new MinhaEntidade();
-const simulador = new Simulador([entidade],0, 100);
+// com estes parâmetros a simulação irá durar 1 minuto e cada momento irá durar 60 segundo.
+// serão disparados 60 eventos com um segundo de intervalo entre eles.
+const dataInicioSimulacao = new Date('2020-01-01T00:00:00');
+const dataFimSimulacao    = new Date('2020-01-01T00:01:00');
+const simulador = new Simulador([entidade], dataInicioSimulacao, dataFimSimulacao, 60);
 
 if (await simulador.iniciar()) {
   for await (let momento of simulador.simular()) {
+    // entidade.processarEvento receberá em timestampAtual as datas '2020-01-01T00:00:00', '2020-01-01T00:01:00', '2020-01-01T00:03:00'..
     console.log(momento);
   }
 } else {

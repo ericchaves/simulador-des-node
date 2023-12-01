@@ -15,7 +15,7 @@ export default class Sala implements IEntidade {
     return true;
   }
 
-  async processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, agendarEvento: AgendarEventoFunction): Promise<boolean> {
+  async processarEvento(emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, timestampAtual: Date, agendarEvento: AgendarEventoFunction): Promise<boolean> {
     const pessoa = argumentos[0].pessoa;
     try{
       switch (evento) {

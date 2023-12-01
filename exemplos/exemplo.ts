@@ -3,13 +3,16 @@ import { Pessoas, Sala } from "./entidades/";
 
 const sala = new Sala("sala", 2);
 const pessoas = new Pessoas("pessoas");
-const simulador = new Simulador([sala, pessoas], 0, 10);
+
+const dataInicioSimulacao = new Date('2020-01-01T00:00:00');
+const dataFimSimulacao    = new Date('2020-01-01T00:00:10');
+const simulador = new Simulador([sala, pessoas], dataInicioSimulacao, dataFimSimulacao, 1);
 (async () => {
     console.log(`modelo: preparando simulação`);
     if (await simulador.preparar()) {
         console.log(`modelo: iniciando simulação`);
-        for await (const momento of simulador.simular()) {
-            console.log(`modelo: momento ${momento} simulado`);
+        for await (const marco of simulador.simular()) {
+            console.log(`modelo: momento ${marco.momento} simulado às ${marco.timestamp}`);
         }
     }
     else {
