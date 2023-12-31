@@ -70,6 +70,9 @@ export class LinhaDoTempo {
    */
   agendar(evento: Evento):number {
     const momento = this.momentoAtual + evento.espera;
+    if(momento < 0){
+      return -1;
+    }
     const eventosDoMomento = this.eventos.get(momento) || [];
     eventosDoMomento.push(evento);
     this.eventos.set(momento, eventosDoMomento);
@@ -83,7 +86,7 @@ export class LinhaDoTempo {
    */
   *avancarTempo(): Generator<Evento> {
     let momentoAnterior;
-    while(this.eventos.size === 0){
+    while(this.eventos.size > 0){
       const momentoAtual = Math.min(...this.eventos.keys());
       const eventosAtuais = this.eventos.get(momentoAtual) || [];
       this.eventos.delete(momentoAtual);

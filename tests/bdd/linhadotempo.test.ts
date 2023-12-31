@@ -34,16 +34,26 @@ describe('LinhaDoTempo', () => {
   test('deve ignorar eventos agendados no passado', () => {
     const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: -5, argumentos: [] };
     const momento = linhaDoTempo.agendar(evento);
+    expect(momento).toBe(-1);
     expect(linhaDoTempo['eventos'].size).toBe(0);
   });
 
-  test('deve emitir os eventos agendados ao avançar no tempo', () => {
-    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
+  test('deve avançar o tempo ao emitir os eventos agendados para o futuro', () => {
+    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 1, argumentos: [] });
     const gerador = linhaDoTempo.avancarTempo();
     const resultado = gerador.next();
     expect(resultado.done).toBe(false);
     expect(resultado.value.nome).toBe('eventoTeste');
     expect(linhaDoTempo.timestampAtual.getTime()).toBeGreaterThan(linhaDoTempo.timestampInicial.getTime());
+  });
+
+  test('ao emitir eventos agendados com espera zero não deve avançar o tempo', () => {
+    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
+    const gerador = linhaDoTempo.avancarTempo();
+    const resultado = gerador.next();
+    expect(resultado.done).toBe(false);
+    expect(resultado.value.nome).toBe('eventoTeste');
+    expect(linhaDoTempo.timestampAtual.getTime()).toBe(linhaDoTempo.timestampInicial.getTime());
   });
 
   test('deve emitir eventos na ordem correta quando múltiplos eventos são agendados para o mesmo momento', () => {
@@ -64,7 +74,7 @@ describe('LinhaDoTempo', () => {
     // Necessário para avançar o generator
     expect(gerador.next().done).toBe(true);
     expect(linhaDoTempo.intervalos).toBe(1);
-    expect(linhaDoTempo.timestampAtual).toBe(linhaDoTempo.timestampInicial);
+    expect(linhaDoTempo.timestampAtual).toStrictEqual(linhaDoTempo.timestampInicial);
   });
 
 });

@@ -13,6 +13,11 @@ export type Marco = {
    * Timestamp do momento atual em relação a dataInicial e escala da simulação.
    */
   timestamp: Date;
+  /**
+   * Total de eventos disparados no momento atual.
+   * @type {number}
+   */
+  totalEventos: number;
 }
 
 /**
@@ -23,15 +28,10 @@ export default class Simulador {
   private linhaDoTempo: LinhaDoTempo;
   private entidades: Map<string, IEntidade[]> = new Map();
   private abortar: boolean = false;
-  public dataFinal: Date;
   public dataInicial: Date;
 
-  constructor(entidades: IEntidade[], dataInicial: Date, dataFinal: Date) {
-    if (dataInicial > dataFinal) {
-      throw new Error("A data inicial deve ser anterior a data final.");
-    }
+  constructor(entidades: IEntidade[], dataInicial: Date) {
     this.dataInicial = dataInicial;
-    this.dataFinal = dataFinal;
     this.linhaDoTempo = new LinhaDoTempo(dataInicial);
     entidades.map(entidade => this.entidades.set(entidade.nome, [entidade]));
   }
@@ -55,9 +55,10 @@ export default class Simulador {
    * Método para agendar um evento na linha do tempo.
    * @method
    * @param {string} nome Evento a ser agendado.
+   * @returns {number} Retorna o momento do evento agendado.
    */
-  agendarEvento(emissor:IEntidade, nome: string,  entidade: string, argumentos: Record<string, any>[], espera: number = 1) {
-    this.linhaDoTempo.agendar({emissor, nome, entidade, argumentos, espera});
+  agendarEvento(emissor:IEntidade, nome: string,  entidade: string, argumentos: Record<string, any>[], espera: number = 1):number {
+    return this.linhaDoTempo.agendar({emissor, nome, entidade, argumentos, espera});
   }
 
   /**
@@ -81,18 +82,21 @@ export default class Simulador {
    * @returns {AsyncGenerator<Marco>} Retorna um gerador de momentos.
    */
   async *simular(): AsyncGenerator<Marco> {
-    while (this.linhaDoTempo.timestampAtual < this.dataFinal) {
+    let timestampAtual = this.linhaDoTempo.timestampAtual;      
+    for(const evento of this.linhaDoTempo.avancarTempo()){
+      let totalEventos = 0;
       if(this.abortar){
         this.abortar = false;
-        return;
+        return null;
       }
-      for(const evento of this.linhaDoTempo.avancarTempo()){
-        this.dispararEvento(evento); 
+      await this.dispararEvento(evento);
+      totalEventos++;
+      if(timestampAtual !== this.linhaDoTempo.timestampAtual){
+        timestampAtual = this.linhaDoTempo.timestampAtual;
+        const marco: Marco = { momento: this.linhaDoTempo.momentoAtual, timestamp: this.linhaDoTempo.timestampAtual, totalEventos } 
+        yield marco;
       }
-      const marco: Marco = { momento: this.linhaDoTempo.momentoAtual, timestamp: this.linhaDoTempo.timestampAtual } 
-      yield marco;
     }
-    return null;
   }
 
   /**

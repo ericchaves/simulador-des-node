@@ -3,30 +3,34 @@ import { IEntidade, AgendarEventoFunction } from '../../src/Entidade';
 
 const mockEntidade: IEntidade = {
   nome: 'MockEntidade',
-  inicializar: jest.fn().mockImplementation((agendarEvento: AgendarEventoFunction) => Promise.resolve(true)),
+  inicializar: jest.fn().mockImplementation(async(agendarEvento: AgendarEventoFunction) => Promise.resolve(true)),
   processarEvento: jest.fn().mockImplementation((emissor: IEntidade, evento: string, argumentos: Record<string, any>[], momentoAtual: number, timestampAtual: Date, agendarEvento: AgendarEventoFunction) => Promise.resolve(true))
 };
 
 describe('Simulador', () => {
+  let simulador: Simulador;
   let entidades: IEntidade[] = [mockEntidade];
   const dataInicioSimulacao = new Date('2020-01-01T00:00:00');
-  const dataFimSimulacao10Seg    = new Date('2020-01-01T00:00:10');
-  const dataFimSimulacao01Hora   = new Date('2020-01-01T01:00:00');
+
+  beforeEach(() => {
+    simulador = new Simulador(entidades, dataInicioSimulacao);
+  });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
   test('ao chamar preparar as entidades devem ser inicializadas com sucesso.', async () => {
-    const simulador = new Simulador(entidades, dataInicioSimulacao, dataFimSimulacao10Seg);
     const result = await simulador.preparar();
     expect(result).toBe(true);
     expect(mockEntidade.inicializar).toHaveBeenCalled();
   });
 
-  test('ao executar simular deve emitir o valor do momento simulado a cada iteração.', async () => {
-    const simulador = new Simulador(entidades, dataInicioSimulacao, dataFimSimulacao10Seg);
+  test('ao executar simulacao deve emitir o valor do momento simulado a cada nova iteração de tempo com evento.', async () => {
     const result: Number[] = [];
+    for(let i = 1; i <= 10; i++){
+      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
+    }
     for await (const marco of simulador.simular()) {
       result.push(marco.momento);
     }
@@ -34,8 +38,10 @@ describe('Simulador', () => {
   });
 
   test('ao pararSimulacao deve encerrar a simulacao sem avançar para o próximo momento.', async() => {
-    const simulador = new Simulador(entidades, dataInicioSimulacao, dataFimSimulacao10Seg);
     const result: Number[] = [];
+    for(let i = 1; i <= 10; i++){
+      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
+    }
     for await (const marco of simulador.simular()) {
       result.push(marco.momento);
       if(result.length === 5){
@@ -46,7 +52,6 @@ describe('Simulador', () => {
   });
 
   test('ao agendar um evento para uma entidade, o evento deve ser disparado durante a simulação.', async () => {
-    const simulador = new Simulador(entidades, dataInicioSimulacao, dataFimSimulacao10Seg);
     simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     const result: Number[] = [];
     for await (const marco of simulador.simular()) {
@@ -56,7 +61,6 @@ describe('Simulador', () => {
   });
 
   test('ao disparar um evento deve informar timestampAtual e o momentoAtual do evento.', async () => {
-    const simulador = new Simulador(entidades, dataInicioSimulacao, dataFimSimulacao01Hora);
     const momento = simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     for await (const _ of simulador.simular()) {
     }
@@ -65,15 +69,9 @@ describe('Simulador', () => {
       'teste', 
       [], // Argumentos do evento
       momento, // momentoAtual
-      new Date('2020-01-01 00:01:00'), // timestampAtual
+      new Date('2020-01-01 00:00:01'), // timestampAtual
       expect.any(Function) // agendarEvento
     );
-  });
-
-  test('se a data final for menor que a data incial o construtor deve lancçar uma exception', () => {
-    expect(() => {
-      new Simulador(entidades, dataFimSimulacao10Seg, dataInicioSimulacao);
-    }).toThrow();
   });
 
 });
