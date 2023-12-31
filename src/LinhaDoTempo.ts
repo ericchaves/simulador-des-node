@@ -44,33 +44,36 @@ export type Evento = {
  * Classe que representa uma linha do tempo para agendar e avançar eventos.
  */
 export class LinhaDoTempo {
-  private eventos: Map<number, Evento[]> = new Map();
-  public momentoAtual: number;
-  public escala: number = 1;
-  public dataInicial: Date;
+  private eventos: Map<number, Evento[]>;
+  public timestampInicial: Date;
   public timestampAtual: Date;
+  public intervalos: number;
 
-  constructor(dataInicial: Date=new Date(), momentoInicial: number = 0, escala: number = 1) {
-    this.escala = escala;
-    this.dataInicial = dataInicial;
-    this.momentoAtual = momentoInicial;
-    this.timestampAtual = this.obterTimestampAtual(momentoInicial);
-  }
-
-  public obterTimestampAtual(momento: number): Date {
-    return new Date(this.dataInicial.getTime() + (momento * this.escala * 1000));
+  /**
+   * Cria um nova linha do tempo iniciando na data informada e contando a partir do offset informado.
+   * @constructor
+   * @param {Date} dataInicial Data inicial da linha do tempo.
+   * @param {number} deslocamentoInicial Quantidade de segundos transcorridos a partir da data inicial.
+   */
+  constructor(dataInicial: Date=new Date(), deslocamentoInicial: number=0) {
+    this.eventos = new Map();
+    this.timestampInicial = dataInicial;
+    this.timestampAtual = new Date(dataInicial.getTime() + (deslocamentoInicial * 1000));
+    this.intervalos = 0;
   }
 
   /**
    * Método para agendar um evento na linha do tempo.
    * @method
    * @param {Evento} evento Evento a ser agendado.
+   * @returns {number} Retorna o momento (quantidade de segundos no futuro) em que o evento será disparado.
    */
-  agendar(evento: Evento) {
+  agendar(evento: Evento):number {
     const momento = this.momentoAtual + evento.espera;
-    const eventosNoMomento = this.eventos.get(momento) || [];
-    eventosNoMomento.push(evento);
-    this.eventos.set(momento, eventosNoMomento);
+    const eventosDoMomento = this.eventos.get(momento) || [];
+    eventosDoMomento.push(evento);
+    this.eventos.set(momento, eventosDoMomento);
+    return momento
   }
 
   /**
@@ -79,17 +82,29 @@ export class LinhaDoTempo {
    * @returns {Generator<Evento>} Retorna um gerador de eventos. Se não houver mais eventos, retorna um gerador vazio.
    */
   *avancarTempo(): Generator<Evento> {
-    this.timestampAtual = this.obterTimestampAtual(this.momentoAtual);
-    let eventos = this.eventos.get(this.momentoAtual) || [];
-    while (eventos.length > 0 || this.eventos.has(this.momentoAtual)) {
-      if (eventos.length === 0) {
-          eventos = this.eventos.get(this.momentoAtual) || [];
-          this.eventos.delete(this.momentoAtual);
-      }
-      while (eventos.length > 0) {
-          yield eventos.shift() as Evento;
+    let momentoAnterior;
+    while(this.eventos.size === 0){
+      const momentoAtual = Math.min(...this.eventos.keys());
+      const eventosAtuais = this.eventos.get(momentoAtual) || [];
+      this.eventos.delete(momentoAtual);
+      if (eventosAtuais) {
+        this.timestampAtual = new Date(this.timestampInicial.getTime() + (momentoAtual * 1000));
+        for (const evento of eventosAtuais) {
+            yield evento;
+        }
+        if(momentoAnterior !== momentoAtual){
+          this.intervalos++;
+          momentoAnterior = momentoAtual;
+        }
       }
     }
-    this.momentoAtual++;
+  }
+
+  /**
+   * Momento atual da linha do tempo, ou seja, a diferença de tempo em segundos entre a data inicial e a data atual.
+   * @atribute
+   */
+  get momentoAtual(): number {
+    return (this.timestampAtual.getTime() - this.timestampInicial.getTime()) / 1000;
   }
 }

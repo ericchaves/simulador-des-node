@@ -13,16 +13,28 @@ describe('LinhaDoTempo', () => {
     linhaDoTempo = new LinhaDoTempo();
   });
 
-  test('deve agendar um novo evento corretamente', () => {
-    const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 5, argumentos: [] };
-    linhaDoTempo.agendar(evento);
-    expect(linhaDoTempo['eventos'].get(5)).toContain(evento);
+  test('deve ser criada com a data inicial informada', () => {
+    const dataInicial = new Date('2020-01-01T00:00:00');
+    linhaDoTempo = new LinhaDoTempo(dataInicial);
+    expect(linhaDoTempo.timestampInicial).toEqual(dataInicial);
   });
 
-  test('não deve emitir eventos ao avançar no tempo sem eventos agendados', () => {
+  test('deve agendar um novo evento para ser disparado quando o momento chegar', () => {
+    const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 5, argumentos: [] };
+    const momento = linhaDoTempo.agendar(evento);
+    expect(linhaDoTempo['eventos'].get(momento)).toContain(evento);
+  });
+
+  test('não deve avançar no tempo se não houver eventos agendados', () => {
     const gerador = linhaDoTempo.avancarTempo();
     expect(gerador.next().done).toBe(true);
-    expect(linhaDoTempo.momentoAtual).toBe(1);
+    expect(linhaDoTempo.timestampAtual.getTime()).toBe(linhaDoTempo.timestampInicial.getTime());
+  });
+
+  test('deve ignorar eventos agendados no passado', () => {
+    const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: -5, argumentos: [] };
+    const momento = linhaDoTempo.agendar(evento);
+    expect(linhaDoTempo['eventos'].size).toBe(0);
   });
 
   test('deve emitir os eventos agendados ao avançar no tempo', () => {
@@ -31,7 +43,7 @@ describe('LinhaDoTempo', () => {
     const resultado = gerador.next();
     expect(resultado.done).toBe(false);
     expect(resultado.value.nome).toBe('eventoTeste');
-    expect(linhaDoTempo.momentoAtual).toBe(0);
+    expect(linhaDoTempo.timestampAtual.getTime()).toBeGreaterThan(linhaDoTempo.timestampInicial.getTime());
   });
 
   test('deve emitir eventos na ordem correta quando múltiplos eventos são agendados para o mesmo momento', () => {
@@ -40,28 +52,7 @@ describe('LinhaDoTempo', () => {
     const gerador = linhaDoTempo.avancarTempo();
     expect(gerador.next().value.nome).toBe('evento1');
     expect(gerador.next().value.nome).toBe('evento2');
-  });
-
-  test('deve avançar corretamente no tempo além dos eventos agendados', () => {
-    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento1', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
-    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento2', entidade: 'entidadeTeste', espera: 1, argumentos: [] });
-    // executa duas vezes para receber todos eventos agendados
-    for(let i = 0; i < 2; i++){
-      // Avançar para receber o evento agendado
-      let gerador = linhaDoTempo.avancarTempo();
-      let resultado = gerador.next(); // Processa evento1
-      while (!resultado.done) {
-        resultado = gerador.next();
-      }
-    }
-    expect(linhaDoTempo.momentoAtual).toBe(2);  
-    // Avançar uma vez mais indo além dos eventos agendados
-    let gerador = linhaDoTempo.avancarTempo();
-    const resultado = gerador.next();
-    expect(resultado.done).toBe(true);
-    expect(linhaDoTempo.momentoAtual).toBe(3);
-  });
-  
+  }); 
 
   test('Um evento agendado para o momento atual deve ser disparado antes de avançar para o próximo momento.', () => {
     linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento1', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
@@ -72,12 +63,8 @@ describe('LinhaDoTempo', () => {
     expect(evento.nome).toBe('evento2');
     // Necessário para avançar o generator
     expect(gerador.next().done).toBe(true);
-    expect(linhaDoTempo.momentoAtual).toBe(1);
-  });
-
-  test('deve calcular o timestamp corretamente para o momento atual conforme a escala em segundos', () => {
-    linhaDoTempo = new LinhaDoTempo(new Date('2020-01-01T00:00:00'), 10, 60);
-    expect(linhaDoTempo.obterTimestampAtual(10)).toEqual(new Date('2020-01-01T00:10:00'));
+    expect(linhaDoTempo.intervalos).toBe(1);
+    expect(linhaDoTempo.timestampAtual).toBe(linhaDoTempo.timestampInicial);
   });
 
 });

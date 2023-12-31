@@ -22,6 +22,7 @@ Eventos são mensagens enviadas para as entidades, permitindo que elas atualizem
 
 - `Simulador`: O Simulador gerencia a simulação através de uma LinhaDoTempo, agendando e processando eventos e requer uma lista de entidades. O simulador é responsável por iniciar a simulação, processar os eventos e atualizar as entidades, e também por gerar o fluxo de tempo da simulação, que é uma série de momentos em que os eventos são processados.
 
+
 ## Criando uma nova simulação
 
 Para criar suas próprias simulações primeiro é preciso construir as entidades que participarão da simulação, criando classes que implementem a interface `IEntidade`. Veja os exemplos na pasta `exemplos`. 
@@ -70,5 +71,22 @@ if (await simulador.iniciar()) {
   console.error("Falha ao iniciar a simulação.");
 }
 ```
+
+
+# Configurando a duracao da simulação
+
+A classe Simulador permite que você crie uma simulação que ocorre ao longo de uma linha do tempo. A simulação é definida por uma data de início e uma data de término. Por exemplo, você pode criar uma simulação que começa em '2023-12-01T00:00:00' e termina em '2023-12-31T23:59:59'.
+
+## Escala
+
+A escala é um valor numérico que determina a velocidade da simulação. Uma escala de 1 significa que a simulação avança em tempo real, ou seja, um segundo na simulação corresponde a um segundo na vida real. Para uma simulação que começa em '2023-12-01T00:00:00' e termina em '2023-12-31T23:59:59', uma escala de 1 faria a simulação durar exatamente 31 dias na vida real.
+
+Uma escala de 60 significa que a simulação avança 60 vezes mais rápido que o tempo real, ou seja, um minuto na simulação corresponde a um segundo na vida real. Com esta escala, a simulação do período de um mês seria completada em aproximadamente 12 horas na vida real.
+
+Da mesma forma, uma escala de 120 significa que a simulação avança 120 vezes mais rápido que o tempo real. Neste caso, cada minuto na simulação equivale a meio segundo na vida real, resultando na conclusão da simulação de um mês em cerca de 6 horas na vida real.
+
+Por fim, uma escala de 600 significa que a simulação avança 600 vezes mais rápido que o tempo real. Aqui, cada minuto na simulação corresponde a 0,1 segundo na vida real. Portanto, a simulação de um mês seria concluída em aproximadamente 1 hora na vida real.
+
+
 
 Esperamos que este projeto seja útil para suas necessidades de simulação. Se você tiver alguma dúvida ou sugestão, não hesite em nos contatar.

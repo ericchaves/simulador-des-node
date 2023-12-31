@@ -22,16 +22,18 @@ export type Marco = {
 export default class Simulador {
   private linhaDoTempo: LinhaDoTempo;
   private entidades: Map<string, IEntidade[]> = new Map();
-  private momentoFinal: number;
   private abortar: boolean = false;
+  public dataFinal: Date;
+  public dataInicial: Date;
 
-  constructor(entidades: IEntidade[], dataInicial: Date, dataFinal: Date, escala: number=1) {
+  constructor(entidades: IEntidade[], dataInicial: Date, dataFinal: Date) {
     if (dataInicial > dataFinal) {
       throw new Error("A data inicial deve ser anterior a data final.");
     }
-    this.linhaDoTempo = new LinhaDoTempo(dataInicial, 0, escala);
+    this.dataInicial = dataInicial;
+    this.dataFinal = dataFinal;
+    this.linhaDoTempo = new LinhaDoTempo(dataInicial);
     entidades.map(entidade => this.entidades.set(entidade.nome, [entidade]));
-    this.momentoFinal = Math.floor((dataFinal.getTime() - dataInicial.getTime()) / (escala * 1000));
   }
 
   private async dispararEvento(evento: Evento): Promise<boolean> {
@@ -40,8 +42,8 @@ export default class Simulador {
       return await entidade[0].processarEvento(
         evento.emissor, 
         evento.nome, 
-        evento.argumentos, 
-        this.linhaDoTempo.momentoAtual, 
+        evento.argumentos,
+        this.linhaDoTempo.momentoAtual,
         this.linhaDoTempo.timestampAtual,
         this.agendarEvento.bind(this)
       );
@@ -79,7 +81,7 @@ export default class Simulador {
    * @returns {AsyncGenerator<Marco>} Retorna um gerador de momentos.
    */
   async *simular(): AsyncGenerator<Marco> {
-    while (this.linhaDoTempo.momentoAtual < this.momentoFinal) {
+    while (this.linhaDoTempo.timestampAtual < this.dataFinal) {
       if(this.abortar){
         this.abortar = false;
         return;
