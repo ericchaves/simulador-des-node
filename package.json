@@ -1,6 +1,6 @@
 {
   "name": "simulador-des-typescript",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Simulador DES para nodejs em typescript",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -9,7 +9,7 @@
     "clean": "rm -rf ./dist",
     "build": "tsc",
     "dev": "ts-node-dev --respawn ./exemplos/exemplo.ts",
-    "start": "ts-node ./exemplos/exemplo.ts",
+    "exemplo": "ts-node ./exemplos/exemplo.ts",
     "test": "jest"
   },
   "keywords": [

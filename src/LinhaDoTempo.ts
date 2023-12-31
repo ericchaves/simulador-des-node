@@ -63,20 +63,19 @@ export class LinhaDoTempo {
   }
 
   /**
-   * Método para agendar um evento na linha do tempo.
+   * Método para agendar um evento na linha do tempo. Eventos agendados para o passado serão ignorados.
    * @method
    * @param {Evento} evento Evento a ser agendado.
-   * @returns {number} Retorna o momento (quantidade de segundos no futuro) em que o evento será disparado.
+   * @returns {number} Retorna o horario universal (time) em que o evento será disparado.
    */
   agendar(evento: Evento):number {
-    const momento = this.momentoAtual + evento.espera;
-    if(momento < 0){
-      return -1;
+    const horarioEmSegs = this.horarioAtual + evento.espera ;
+    if(horarioEmSegs >= this.horarioAtual){
+      const eventosDoMomento = this.eventos.get(horarioEmSegs) || [];
+      eventosDoMomento.push(evento);
+      this.eventos.set(horarioEmSegs, eventosDoMomento);  
     }
-    const eventosDoMomento = this.eventos.get(momento) || [];
-    eventosDoMomento.push(evento);
-    this.eventos.set(momento, eventosDoMomento);
-    return momento
+    return horarioEmSegs * 1000;
   }
 
   /**
@@ -85,19 +84,18 @@ export class LinhaDoTempo {
    * @returns {Generator<Evento>} Retorna um gerador de eventos. Se não houver mais eventos, retorna um gerador vazio.
    */
   *avancarTempo(): Generator<Evento> {
-    let momentoAnterior;
     while(this.eventos.size > 0){
-      const momentoAtual = Math.min(...this.eventos.keys());
-      const eventosAtuais = this.eventos.get(momentoAtual) || [];
-      this.eventos.delete(momentoAtual);
+      const filtrados = [...this.eventos.keys()].filter(item => item >= this.horarioAtual);
+      const horarioEmSegs = Math.min(...filtrados);
+      const eventosAtuais = this.eventos.get(horarioEmSegs) || [];
+      this.eventos.delete(horarioEmSegs);
       if (eventosAtuais) {
-        this.timestampAtual = new Date(this.timestampInicial.getTime() + (momentoAtual * 1000));
+        if(this.horarioAtual !== horarioEmSegs){
+          this.intervalos++;
+          this.timestampAtual.setTime(horarioEmSegs * 1000);
+        }
         for (const evento of eventosAtuais) {
             yield evento;
-        }
-        if(momentoAnterior !== momentoAtual){
-          this.intervalos++;
-          momentoAnterior = momentoAtual;
         }
       }
     }
@@ -109,5 +107,13 @@ export class LinhaDoTempo {
    */
   get momentoAtual(): number {
     return (this.timestampAtual.getTime() - this.timestampInicial.getTime()) / 1000;
+  }
+
+  /**
+   * Retorna o timestamp atual da linha do tempo em segundos (Unix epoch com precisão de segundos apenas).
+   * @atribute
+   */
+  get horarioAtual(): number {
+    return Math.round(this.timestampAtual.getTime() / 1000);
   }
 }

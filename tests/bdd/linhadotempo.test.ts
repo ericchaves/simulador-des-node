@@ -19,10 +19,11 @@ describe('LinhaDoTempo', () => {
     expect(linhaDoTempo.timestampInicial).toEqual(dataInicial);
   });
 
-  test('deve agendar um novo evento para ser disparado quando o momento chegar', () => {
+  test('deve agendar um novo evento para ser disparado quando o horário chegar', () => {
     const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 5, argumentos: [] };
     const momento = linhaDoTempo.agendar(evento);
-    expect(linhaDoTempo['eventos'].get(momento)).toContain(evento);
+    expect(linhaDoTempo['eventos'].size).toBe(1);
+    expect(linhaDoTempo['eventos'].get(momento / 1000)).toContain(evento);
   });
 
   test('não deve avançar no tempo se não houver eventos agendados', () => {
@@ -34,7 +35,6 @@ describe('LinhaDoTempo', () => {
   test('deve ignorar eventos agendados no passado', () => {
     const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: -5, argumentos: [] };
     const momento = linhaDoTempo.agendar(evento);
-    expect(momento).toBe(-1);
     expect(linhaDoTempo['eventos'].size).toBe(0);
   });
 
@@ -62,7 +62,17 @@ describe('LinhaDoTempo', () => {
     const gerador = linhaDoTempo.avancarTempo();
     expect(gerador.next().value.nome).toBe('evento1');
     expect(gerador.next().value.nome).toBe('evento2');
-  }); 
+  });
+  
+  test('deve emitir eventos na ordem correta quando múltiplos eventos são agendados fora de ordem momento', () => {
+    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento2', entidade: 'entidadeTeste', espera: 1, argumentos: [] });
+    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento1', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
+    linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento3', entidade: 'entidadeTeste', espera: 1, argumentos: [] });
+    const gerador = linhaDoTempo.avancarTempo();
+    expect(gerador.next().value.nome).toBe('evento1');
+    expect(gerador.next().value.nome).toBe('evento2');
+    expect(gerador.next().value.nome).toBe('evento3');
+  });
 
   test('Um evento agendado para o momento atual deve ser disparado antes de avançar para o próximo momento.', () => {
     linhaDoTempo.agendar({ emissor: mockEntidade, nome: 'evento1', entidade: 'entidadeTeste', espera: 0, argumentos: [] });
@@ -73,7 +83,7 @@ describe('LinhaDoTempo', () => {
     expect(evento.nome).toBe('evento2');
     // Necessário para avançar o generator
     expect(gerador.next().done).toBe(true);
-    expect(linhaDoTempo.intervalos).toBe(1);
+    expect(linhaDoTempo.intervalos).toBe(0);
     expect(linhaDoTempo.timestampAtual).toStrictEqual(linhaDoTempo.timestampInicial);
   });
 

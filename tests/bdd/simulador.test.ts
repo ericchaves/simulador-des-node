@@ -61,15 +61,15 @@ describe('Simulador', () => {
   });
 
   test('ao disparar um evento deve informar timestampAtual e o momentoAtual do evento.', async () => {
-    const momento = simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
+    const horario = simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     for await (const _ of simulador.simular()) {
     }
     expect(mockEntidade.processarEvento).toHaveBeenCalledWith(
       mockEntidade, 
       'teste', 
       [], // Argumentos do evento
-      momento, // momentoAtual
-      new Date('2020-01-01 00:00:01'), // timestampAtual
+      1, // momentoAtual
+      new Date(horario), // timestampAtual
       expect.any(Function) // agendarEvento
     );
   });

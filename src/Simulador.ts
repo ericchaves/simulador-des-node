@@ -82,18 +82,19 @@ export default class Simulador {
    * @returns {AsyncGenerator<Marco>} Retorna um gerador de momentos.
    */
   async *simular(): AsyncGenerator<Marco> {
-    let timestampAtual = this.linhaDoTempo.timestampAtual;      
+    let horarioAtual = this.linhaDoTempo.horarioAtual;      
+    let totalEventos = 0;
     for(const evento of this.linhaDoTempo.avancarTempo()){
-      let totalEventos = 0;
       if(this.abortar){
         this.abortar = false;
         return null;
       }
       await this.dispararEvento(evento);
       totalEventos++;
-      if(timestampAtual !== this.linhaDoTempo.timestampAtual){
-        timestampAtual = this.linhaDoTempo.timestampAtual;
+      if(horarioAtual !== this.linhaDoTempo.horarioAtual){
         const marco: Marco = { momento: this.linhaDoTempo.momentoAtual, timestamp: this.linhaDoTempo.timestampAtual, totalEventos } 
+        horarioAtual = this.linhaDoTempo.horarioAtual;
+        totalEventos = 0;
         yield marco;
       }
     }
