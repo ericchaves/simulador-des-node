@@ -29,7 +29,7 @@ describe('Simulador', () => {
   test('ao executar simulacao deve emitir o valor do momento simulado a cada nova iteração de tempo com evento.', async () => {
     const result: Number[] = [];
     for(let i = 1; i <= 10; i++){
-      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade',  new Map<string, any>(), i);
+      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
     }
     for await (const marco of simulador.simular()) {
       result.push(marco.momento);
@@ -40,7 +40,7 @@ describe('Simulador', () => {
   test('ao pararSimulacao deve encerrar a simulacao sem avançar para o próximo momento.', async() => {
     const result: Number[] = [];
     for(let i = 1; i <= 10; i++){
-      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade',  new Map<string, any>(), i);
+      simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
     }
     for await (const marco of simulador.simular()) {
       result.push(marco.momento);
@@ -52,7 +52,7 @@ describe('Simulador', () => {
   });
 
   test('ao agendar um evento para uma entidade, o evento deve ser disparado durante a simulação.', async () => {
-    simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade',  new Map<string, any>(), 1);
+    simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     const result: Number[] = [];
     for await (const marco of simulador.simular()) {
       result.push(marco.momento);
@@ -61,13 +61,13 @@ describe('Simulador', () => {
   });
 
   test('ao disparar um evento deve informar timestampAtual e o momentoAtual do evento.', async () => {
-    const horario = simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade',  new Map<string, any>(), 1);
+    const horario = simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     for await (const _ of simulador.simular()) {
     }
     expect(mockEntidade.processarEvento).toHaveBeenCalledWith(
       mockEntidade, 
       'teste', 
-      new Map<string, any>(), // Argumentos do evento
+      [], // Argumentos do evento
       1, // momentoAtual
       new Date(horario), // timestampAtual
       expect.any(Function) // agendarEvento
