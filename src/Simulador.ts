@@ -57,7 +57,7 @@ export default class Simulador {
    * @param {string} nome Evento a ser agendado.
    * @returns {number} Retorna o momento do evento agendado.
    */
-  agendarEvento(emissor:IEntidade, nome: string,  entidade: string, argumentos: Record<string, any>[], espera: number = 1):number {
+  agendarEvento(emissor:IEntidade, nome: string,  entidade: string, argumentos: Map<string, any>, espera: number = 1):number {
     return this.linhaDoTempo.agendar({emissor, nome, entidade, argumentos, espera});
   }
 

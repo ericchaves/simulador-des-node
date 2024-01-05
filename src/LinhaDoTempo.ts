@@ -31,9 +31,9 @@ export type Evento = {
 
   /**
    * Argumentos adicionais para o evento.
-   * @type {Record<string, any>[]}
+   * @type {Map<string, any>}
    */
-  argumentos: Record<string, any>[];
+  argumentos: Map<string, any>;
 }
 
 /**
