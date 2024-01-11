@@ -11,7 +11,7 @@ const simulador = new Simulador([sala, pessoas], dataInicioSimulacao);
     if (await simulador.preparar()) {
         console.log(`modelo: iniciando simulação`);
         for await (const marco of simulador.simular()) {
-            console.log(`modelo: momento ${marco.momento} simulado às ${marco.timestamp}`);
+            console.log(`modelo: momento ${marco.momentoAtual} simulado às ${marco.timestampAtual.toISOString()}`);
         }
     }
     else {

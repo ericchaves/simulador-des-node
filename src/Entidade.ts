@@ -1,4 +1,4 @@
-export type AgendarEventoFunction = (emissor: IEntidade, nome: string, entidade: string, argumentos: Record<string, any>[], espera: number) => void;
+export type AgendarEventoFunction = (emissor: IEntidade, nome: string, entidade: string, argumentos: Record<string, any>[], espera: number) => number;
 
 /**
  * Interface para representar uma entidade na simulação.
