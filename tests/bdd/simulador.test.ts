@@ -1,4 +1,4 @@
-import Simulador from '../../src/Simulador';
+import Simulador, { Marco } from '../../src/Simulador';
 import { IEntidade, AgendarEventoFunction } from '../../src/Entidade';
 
 const mockEntidade: IEntidade = {
@@ -32,9 +32,9 @@ describe('Simulador', () => {
       simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
     }
     for await (const marco of simulador.simular()) {
-      result.push(marco.momento);
+      result.push(marco.momentoAtual);
     }
-    expect(result).toEqual([1,2,3,4,5,6,7,8,9,10]);
+    expect(result).toEqual([0,1,2,3,4,5,6,7,8,9,10]);
   });
 
   test('ao pararSimulacao deve encerrar a simulacao sem avançar para o próximo momento.', async() => {
@@ -43,19 +43,19 @@ describe('Simulador', () => {
       simulador.agendarEvento(mockEntidade, `evento-${i}`, 'MockEntidade', [], i);
     }
     for await (const marco of simulador.simular()) {
-      result.push(marco.momento);
+      result.push(marco.momentoAtual);
       if(result.length === 5){
         simulador.pararSimulacao();
       }
     }
-    expect(result).toEqual([1,2,3,4,5]);
+    expect(result).toEqual([0,1,2,3,4]);
   });
 
   test('ao agendar um evento para uma entidade, o evento deve ser disparado durante a simulação.', async () => {
     simulador.agendarEvento(mockEntidade ,'teste', 'MockEntidade', [], 1);
     const result: Number[] = [];
     for await (const marco of simulador.simular()) {
-      result.push(marco.momento);
+      result.push(marco.momentoAtual);
     }
     expect(mockEntidade.processarEvento).toHaveBeenCalled();
   });
@@ -72,6 +72,22 @@ describe('Simulador', () => {
       new Date(horario), // timestampAtual
       expect.any(Function) // agendarEvento
     );
+  });
+
+  test('deve emitir o marco antes da linha do tempo avançar o timestampAtual.', async () => {   
+      const result: Marco[] = [];
+      const timestamp_inicial = simulador.timestampAtual;
+      const horario1 = simulador.agendarEvento(mockEntidade ,'evento0', 'MockEntidade', [], 0);
+      const horario2 = simulador.agendarEvento(mockEntidade ,'evento1', 'MockEntidade', [], 1);
+      for await (const marco of simulador.simular()) {
+        result.push(marco);
+      }
+      // O marco deve ser emitido antes do timestampAtual avançar
+      expect(mockEntidade.processarEvento).toHaveBeenCalledTimes(2);
+      expect(result.length).toBe(2);
+      // Verifica se o timestamp do Marco é igual ao horário do evento correspondente
+      expect(result[0].timestampAtual.getTime()).toEqual(horario1);
+      expect(result[1].timestampAtual.getTime()).toEqual(horario2);
   });
 
 });

@@ -45,9 +45,9 @@ export type Evento = {
  */
 export class LinhaDoTempo {
   private eventos: Map<number, Evento[]>;
-  public timestampInicial: Date;
-  public timestampAtual: Date;
   public intervalos: number;
+  private _timestampInicial: Date;
+  private _timestampAtual: Date;
 
   /**
    * Cria um nova linha do tempo iniciando na data informada e contando a partir do offset informado.
@@ -57,8 +57,8 @@ export class LinhaDoTempo {
    */
   constructor(dataInicial: Date=new Date(), deslocamentoInicial: number=0) {
     this.eventos = new Map();
-    this.timestampInicial = dataInicial;
-    this.timestampAtual = new Date(dataInicial.getTime() + (deslocamentoInicial * 1000));
+    this._timestampInicial = dataInicial;
+    this._timestampAtual = new Date(dataInicial.getTime() + (deslocamentoInicial * 1000));
     this.intervalos = 0;
   }
 
@@ -79,25 +79,30 @@ export class LinhaDoTempo {
   }
 
   /**
-   * Método para retirar os próximos eventos da linha do tempo.
+   * tenta avança a linha do tempo para a próxima marca de eventos.
    * @method
-   * @returns {Generator<Evento>} Retorna um gerador de eventos. Se não houver mais eventos, retorna um gerador vazio.
+   * @returns {Boolean} Retorna false se não houver mais eventos futuros.
    */
-  *avancarTempo(): Generator<Evento> {
-    while(this.eventos.size > 0){
-      const filtrados = [...this.eventos.keys()].filter(item => item >= this.horarioAtual);
-      const horarioEmSegs = Math.min(...filtrados);
-      const eventosAtuais = this.eventos.get(horarioEmSegs) || [];
-      this.eventos.delete(horarioEmSegs);
-      if (eventosAtuais) {
-        if(this.horarioAtual !== horarioEmSegs){
-          this.intervalos++;
-          this.timestampAtual.setTime(horarioEmSegs * 1000);
-        }
-        for (const evento of eventosAtuais) {
-            yield evento;
-        }
-      }
+  avancarTempo(): boolean {
+    const horariosFuturos = [...this.eventos.keys()].filter(horario => horario > this.horarioAtual);
+    if (horariosFuturos.length === 0) {
+      return false; // Não há mais horários futuros no array de eventos
+    }
+    const proximoHorario = Math.min(...horariosFuturos);
+    this._timestampAtual.setTime(proximoHorario * 1000);
+    return true;
+  }
+
+
+  /**
+   * Método para emitir os eventos do momento atual.
+   * @method
+   * @returns {Generator<Evento>} Retorna um gerador de eventos.
+   */
+  *emitirEventos(): Generator<Evento> {
+    const eventosAtuais = this.eventos.get(this.horarioAtual) || [];
+    for (const evento of eventosAtuais) {
+      yield evento;
     }
   }
 
@@ -106,14 +111,22 @@ export class LinhaDoTempo {
    * @atribute
    */
   get momentoAtual(): number {
-    return (this.timestampAtual.getTime() - this.timestampInicial.getTime()) / 1000;
+    return (this._timestampAtual.getTime() - this._timestampInicial.getTime()) / 1000;
   }
 
+  get timestampAtual(): Date {
+    return new Date(this._timestampAtual.getTime());
+  };
+
+  get timestampInicial(): Date {
+    return new Date(this._timestampInicial.getTime());
+  };
+
   /**
-   * Retorna o timestamp atual da linha do tempo em segundos (Unix epoch com precisão de segundos apenas).
+   * Retorna o tempo atual da linha do tempo em segundos (Unix epoch com precisão de segundos apenas).
    * @atribute
    */
   get horarioAtual(): number {
-    return Math.round(this.timestampAtual.getTime() / 1000);
+    return Math.round(this._timestampAtual.getTime() / 1000);
   }
 }

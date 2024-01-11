@@ -8,16 +8,22 @@ export type Marco = {
   /**
    * Valor do momento atual.
    */
-  momento: number;
+  momentoAtual: number;
   /**
    * Timestamp do momento atual em relação a dataInicial e escala da simulação.
    */
-  timestamp: Date;
+  timestampAtual: Date;
   /**
-   * Total de eventos disparados no momento atual.
+   * Total de eventos processados no momento atual.
    * @type {number}
    */
-  totalEventos: number;
+  eventosProcessados: number;
+
+  /**
+   * Total de eventos ignorados no momento atual.
+   * @type {number}
+   */
+  eventosIgnorados: number;
 }
 
 /**
@@ -34,6 +40,10 @@ export default class Simulador {
     this.dataInicial = dataInicial;
     this.linhaDoTempo = new LinhaDoTempo(dataInicial);
     entidades.map(entidade => this.entidades.set(entidade.nome, [entidade]));
+  }
+
+  public get timestampAtual(): Date {
+    return new Date(this.linhaDoTempo.timestampAtual.getTime());
   }
 
   private async dispararEvento(evento: Evento): Promise<boolean> {
@@ -82,23 +92,46 @@ export default class Simulador {
    * @returns {AsyncGenerator<Marco>} Retorna um gerador de momentos.
    */
   async *simular(): AsyncGenerator<Marco> {
-    let horarioAtual = this.linhaDoTempo.horarioAtual;      
-    let totalEventos = 0;
-    for(const evento of this.linhaDoTempo.avancarTempo()){
-      if(this.abortar){
-        this.abortar = false;
-        return null;
+    let momentoAtual = this.linhaDoTempo.momentoAtual;
+    let eventosProcessados = 0;
+    let eventosIgnorados = 0;
+    let continuar = true;
+    while(continuar){
+      const timestampAtual = this.linhaDoTempo.timestampAtual;
+      for(const evento of this.linhaDoTempo.emitirEventos()){
+        if(this.abortar){
+          this.abortar = false;
+          return null;
+        }
+        const processado = await this.dispararEvento(evento);
+        if(processado) {
+          eventosProcessados++
+        }else{
+          eventosIgnorados++;
+        }
       }
-      await this.dispararEvento(evento);
-      totalEventos++;
-      if(horarioAtual !== this.linhaDoTempo.horarioAtual){
-        const marco: Marco = { momento: this.linhaDoTempo.momentoAtual, timestamp: this.linhaDoTempo.timestampAtual, totalEventos } 
-        horarioAtual = this.linhaDoTempo.horarioAtual;
-        totalEventos = 0;
+      continuar = this.linhaDoTempo.avancarTempo();
+      if(momentoAtual !== this.linhaDoTempo.momentoAtual){
+        const marco: Marco = {  
+          momentoAtual, 
+          timestampAtual, 
+          eventosProcessados,
+          eventosIgnorados, 
+        }; 
         yield marco;
+        momentoAtual = this.linhaDoTempo.momentoAtual;
       }
-    }
+     };
+     // yield do último marco
+     const marco: Marco = {  
+      momentoAtual: this.linhaDoTempo.momentoAtual, 
+      timestampAtual: this.linhaDoTempo.timestampAtual, 
+      eventosProcessados,
+      eventosIgnorados, 
+    }; 
+    yield marco;
   }
+    
 
   /**
    * Método para abortar a simulação em execução.
