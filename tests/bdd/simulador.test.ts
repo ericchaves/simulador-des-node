@@ -1,5 +1,6 @@
 import Simulador, { Marco } from '../../src/Simulador';
 import { IEntidade, AgendarEventoFunction } from '../../src/Entidade';
+import exp from 'constants';
 
 const mockEntidade: IEntidade = {
   nome: 'MockEntidade',
@@ -24,6 +25,13 @@ describe('Simulador', () => {
     const result = await simulador.preparar();
     expect(result).toBe(true);
     expect(mockEntidade.inicializar).toHaveBeenCalled();
+  });
+
+  test('deve agendar evento para o momentoAtual + espera.', async () => {
+    const horario = simulador.agendarEvento(mockEntidade, 'teste', 'MockEntidade', [], 1);
+    const momentoEsperado = simulador['linhaDoTempo'].timestampAtual.getTime() + 1000;
+    expect(horario).toBe(dataInicioSimulacao.getTime() + 1000);
+    expect(horario).toBe(momentoEsperado);
   });
 
   test('ao executar simulacao deve emitir o valor do momento simulado a cada nova iteração de tempo com evento.', async () => {

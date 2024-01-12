@@ -35,6 +35,13 @@ describe('LinhaDoTempo', () => {
     expect(linhaDoTempo.timestampAtual.getTime()).toBe(linhaDoTempo.timestampInicial.getTime());
   });
 
+  test('deve agendar o o evento para ser disparado em momento atual + espera em segundos', () => {
+    const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 5, argumentos: [] };
+    const momento = linhaDoTempo.agendar(evento);
+    const momentoEsperado = new Date(linhaDoTempo.timestampAtual.getTime() + 5000).getTime();
+    expect(momento).toBe(momentoEsperado);
+  });
+  
   test('deve avançar o tempo para o proximo horario com eventos agendados', () => {
     const evento: Evento = { emissor: mockEntidade, nome: 'eventoTeste', entidade: 'entidadeTeste', espera: 5, argumentos: [] };
     const momento = linhaDoTempo.agendar(evento);
