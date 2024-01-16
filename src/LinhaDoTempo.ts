@@ -45,7 +45,7 @@ export type Evento = {
  */
 export class LinhaDoTempo {
   private eventos: Map<number, Evento[]>;
-  public intervalos: number;
+  private _intervalos: number;
   private _timestampInicial: Date;
   private _timestampAtual: Date;
 
@@ -59,7 +59,7 @@ export class LinhaDoTempo {
     this.eventos = new Map();
     this._timestampInicial = dataInicial;
     this._timestampAtual = new Date(dataInicial.getTime() + (deslocamentoInicial * 1000));
-    this.intervalos = 0;
+    this._intervalos = 0;
   }
 
   /**
@@ -90,6 +90,7 @@ export class LinhaDoTempo {
     }
     const proximoHorario = Math.min(...horariosFuturos);
     this._timestampAtual.setTime(proximoHorario * 1000);
+    this._intervalos++;
     return true;
   }
 
@@ -111,7 +112,7 @@ export class LinhaDoTempo {
    * @atribute
    */
   get momentoAtual(): number {
-    return (this._timestampAtual.getTime() - this._timestampInicial.getTime()) / 1000;
+    return this._intervalos;
   }
 
   get timestampAtual(): Date {
